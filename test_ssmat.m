@@ -12,11 +12,16 @@ for ssmi = 1:length(ssmats)
     b = M * b;
     b = b / norm(b);
 
-    % build solver.
-    prec = cmg_sdd(M);
+    % build icc solver
+    perm = symrcm(M);
+    Mperm = M(perm, perm);
+    bperm = b(perm);
+    Mlow = ichol(Mperm);
 
     % solve system.
-    x = pcg(M, b, 1e-8, 1000, prec);
+    xperm = pcg(Mperm, bperm, 1e-8, 1000, Mlow, Mlow');
+    x = zeros(n, 1);
+    x(perm) = xperm;
 
     % check error.
     err = norm(M * x - b);
